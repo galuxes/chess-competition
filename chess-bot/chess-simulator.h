@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "chess.hpp"
 
 namespace ChessSimulator {
 /**
@@ -9,4 +10,5 @@ namespace ChessSimulator {
  * @return std::string The move as UCI
  */
 std::string Move(std::string fen);
+std::string BestOneDeep(chess::Movelist moves, chess::Board);
 } // namespace ChessSimulator
