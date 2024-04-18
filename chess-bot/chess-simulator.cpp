@@ -5,6 +5,7 @@
 #include <random>
 using namespace ChessSimulator;
 
+
 std::string ChessSimulator::Move(std::string fen) {
   // create your board based on the board string following the FEN notation
   // search for the best move using minimax / monte carlo tree search /
@@ -23,7 +24,7 @@ std::string ChessSimulator::Move(std::string fen) {
   if(moves.size() == 0)
     return move;
 
-  return BestOneDeep(moves, board);
+  return BestOneDeep(moves, board, !board.sideToMove(), 1).move;
 
   //// get random move
   //std::random_device rd;
@@ -33,7 +34,7 @@ std::string ChessSimulator::Move(std::string fen) {
   //return chess::uci::moveToUci(move);
 }
 
-std::string ChessSimulator::BestOneDeep(chess::Movelist moves, chess::Board board) 
+EvaluatedMove ChessSimulator::BestOneDeep(chess::Movelist moves, chess::Board board, chess::Color turn, int depth) 
 {
 	chess::Board tmpBoard;
 	tmpBoard = board;
@@ -42,21 +43,32 @@ std::string ChessSimulator::BestOneDeep(chess::Movelist moves, chess::Board boar
 	std::uniform_int_distribution<> dist(0, moves.size() - 1);
 	int ranNum = dist(gen);
 	tmpBoard.makeMove(moves[ranNum]);
-	float bestScore = Evaluate(tmpBoard), tmpScore = 0;
+	float bestScore = Evaluate(tmpBoard, turn), tmpScore = 0;
 	int bestScoreIndex = ranNum;
 
 	for(int i = 0; i < moves.size(); i++)
 	{
 		tmpBoard = board;
 		tmpBoard.makeMove(moves[i]);
-		tmpScore = Evaluate(tmpBoard);
+		tmpScore = Evaluate(tmpBoard, turn);
+
+		if (depth > 0) {
+			chess::Movelist tmpEnemyValidMoves;
+			chess::movegen::legalmoves(tmpEnemyValidMoves, tmpBoard);
+			BestOneDeep(tmpEnemyValidMoves, tmpBoard, ~turn, depth--);
+		}
+
+
 		if (tmpScore > bestScore) {
 			bestScore = tmpScore;
 			bestScoreIndex = i;
 		}
 	}
-	std::cout << moves.size();
-	return chess::uci::moveToUci(moves[bestScoreIndex]);
+	EvaluatedMove evalMove;
+	evalMove.evaluation = bestScore;
+	evalMove.move = chess::uci::moveToUci(moves[bestScoreIndex]);
+
+	return evalMove;
 }
 
 
