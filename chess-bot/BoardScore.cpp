@@ -7,18 +7,21 @@ enum PieceScore {
 	BISHOP = 3,
 	ROOK = 5,
 	QUEEN = 10,
-	KING = 1000
+	KING = 20
 };
 
-static float Evaluate(chess::Board& board, chess::Color turn) {
-
+static float Evaluate(chess::Board& board, chess::Color turn) 
+{
 	float score = 0;
+	if (board.inCheck())
+		score += 3;
+
 	for (size_t row = 0; row < 8; row++) {
 		for (size_t col = 0; col < 8; col++) {
 			auto piece = board.at(chess::Square(chess::Rank(row), chess::File(col)));
 			int scoreMod = 1, value = 0;
 
-			if (piece.color().internal() != turn) 
+			if (piece.color().internal() == turn) 
 				scoreMod = -1;
 
 			switch (piece.type())
